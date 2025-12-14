@@ -16,6 +16,8 @@ export default function GamePage() {
   const nextId = useRef(1)
   const rafRef = useRef<number | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const beaverRef = useRef<HTMLDivElement | null>(null)
+  const bucketRef = useRef<HTMLDivElement | null>(null)
   const [score, setScore] = useState(0)
   const [missed, setMissed] = useState(0)
   const [bucketX, setBucketX] = useState(50) // percent
@@ -23,6 +25,9 @@ export default function GamePage() {
   const [spawnRate, setSpawnRate] = useState(0.8) // tears per second
   const [width, setWidth] = useState(800)
   const [height, setHeight] = useState(600)
+  const [beaverLoaded, setBeaverLoaded] = useState(false)
+  const [bucketLoaded, setBucketLoaded] = useState(false)
+  const [beaverOffset, setBeaverOffset] = useState(0)
 
   // update container size
   useEffect(() => {
@@ -115,8 +120,14 @@ export default function GamePage() {
   function spawnTear() {
     const el = containerRef.current
     if (!el) return
-    const beaverX = el.clientWidth / 2 // beaver centered
-    const x = beaverX + (Math.random() - 0.5) * 240 // tears flow from slightly different points
+    // prefer spawning from the beaver image center if available
+    const rect = el.getBoundingClientRect()
+    let beaverCenter = el.clientWidth / 2
+    if (beaverRef.current) {
+      const brect = beaverRef.current.getBoundingClientRect()
+      beaverCenter = (brect.left - rect.left) + brect.width / 2
+    }
+    const x = beaverCenter + (Math.random() - 0.5) * 120 // tears flow from slightly different points
     const y = 80 + Math.random() * 20
     const vx = (Math.random() - 0.5) * 120 // some sideways flow
     const vy = 80 + Math.random() * 60
@@ -124,6 +135,24 @@ export default function GamePage() {
     const id = nextId.current++
     setTears((t) => [...t, { id, x, y, vx, vy, size }])
   }
+
+  // gentle left-right oscillation for the beaver
+  useEffect(() => {
+    let raf: number | null = null
+    let start = performance.now()
+    const amp = 36 // pixels amplitude
+    const speed = 0.25 // cycles per second
+    const loop = (t: number) => {
+      const elapsed = (t - start) / 1000
+      const offset = Math.sin(elapsed * speed * Math.PI * 2) * amp
+      setBeaverOffset(offset)
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => {
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
 
   function handleMouseMove(e: React.MouseEvent) {
     const el = containerRef.current
@@ -173,17 +202,29 @@ export default function GamePage() {
       >
         {/* beaver at top center */}
         <div
+          ref={beaverRef}
           style={{
             position: "absolute",
             left: "50%",
-            transform: "translateX(-50%)",
+            transform: `translateX(-50%) translateX(${beaverOffset}px)`,
             top: 16,
             fontSize: 48,
             pointerEvents: "none",
             textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          <div style={{ fontSize: 56 }}>🦫</div>
+          {/* image fallback: show image when available, otherwise emoji */}
+          <img
+            src="/cryingbeavergame/cryingbeaver.png"
+            alt="Kunduz"
+            onLoad={() => setBeaverLoaded(true)}
+            onError={() => setBeaverLoaded(false)}
+            style={{ width: 96, height: "auto", display: beaverLoaded ? "block" : "none" }}
+          />
+          <div style={{ fontSize: 56, display: beaverLoaded ? "none" : "block" }}>🦫</div>
           <div style={{ fontSize: 14 }}>Kunduz
             <span style={{ display: "block", fontSize: 12, color: "#555" }}>{playing ? "(ağlamaya devam ediyor)" : "(beklemede)"}</span>
           </div>
@@ -210,6 +251,7 @@ export default function GamePage() {
 
         {/* bucket */}
         <div
+          ref={bucketRef}
           style={{
             position: "absolute",
             left: `${bucketX}%`,
@@ -225,9 +267,17 @@ export default function GamePage() {
             color: "white",
             fontWeight: 700,
             boxShadow: "0 4px 6px rgba(0,0,0,0.12)",
+            overflow: "hidden",
           }}
         >
-          🪣
+          <img
+            src="/cryingbeavergame/kova.png"
+            alt="Kova"
+            onLoad={() => setBucketLoaded(true)}
+            onError={() => setBucketLoaded(false)}
+            style={{ width: 64, height: "auto", display: bucketLoaded ? "block" : "none" }}
+          />
+          <div style={{ fontSize: 28, display: bucketLoaded ? "none" : "block" }}>🪣</div>
         </div>
 
         {/* HUD */}
