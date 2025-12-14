@@ -82,25 +82,25 @@ export default function Home() {
               </h1>
             </div>
 
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-[44%] z-10 flex justify-center">
-              <div className="text-3xl sm:text-4xl text-cyan-200 font-bold italic" style={{ fontFamily: 'var(--font-pacifico)' }}>CHOOSE!</div>
-            </div>
-
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-[30%] z-10 px-6">
+            <div className="absolute left-0 right-0 bottom-20 z-10 px-6 flex flex-col items-center gap-4">
+              <div className="text-4xl sm:text-5xl text-cyan-200 font-bold italic" style={{ fontFamily: 'var(--font-pacifico)' }}>CHOOSE!</div>
               <div className="grid grid-cols-3 grid-rows-2 gap-4 justify-center items-center">
                 {MOODS.map((mood) => (
                   <button
                     key={mood.id}
                     onClick={() => router.push(`/login/${mood.id}`)}
-                    className="relative w-24 h-24 rounded-full bg-transparent flex items-center justify-center shadow-md overflow-hidden transform transition-transform hover:scale-105"
+                    className="relative w-28 h-28 rounded-full bg-white/6 border border-white/10 flex items-center justify-center shadow-lg overflow-hidden transform transition duration-200 hover:scale-105 hover:shadow-2xl active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                     aria-label={mood.label}
                   >
-                    <Image src={mood.img} alt={mood.label} width={88} height={88} className="object-contain" />
+                    <div className="relative w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
+                      <Image src={mood.img} alt={mood.label} fill className="object-contain" />
+                    </div>
                   </button>
                 ))}
               </div>
-            </div>
 
+              {/* (decorative bar removed per request) */}
+            </div>
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-black/60 rounded-full" />
           </div>
         </div>

@@ -409,3 +409,44 @@ Import traces:
  ✓ Compiled in 47ms
  GET / 200 in 430ms (compile: 202ms, render: 228ms)
  GET / 200 in 153ms (compile: 130ms, render: 22ms)
+ ✓ Compiled in 38ms
+ GET / 200 in 431ms (compile: 213ms, render: 218ms)
+ ✓ Compiled in 40ms
+ ✓ Compiled in 0ms
+ GET / 200 in 441ms (compile: 216ms, render: 224ms)
+ ✓ Compiled in 61ms
+ ⨯ ./app/page.tsx:119:1
+Parsing ecmascript source code failed
+[0m [90m 117 |[39m     [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 118 |[39m   )[33m;[39m
+[31m[1m>[22m[39m[90m 119 |[39m }
+ [90m     |[39m [31m[1m^[22m[39m
+ [90m 120 |[39m[0m
+
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+Import traces:
+  Client Component Browser:
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+
+ GET / 500 in 31ms (compile: 20ms, render: 11ms)
+ ✓ Compiled in 26ms
+ GET / 200 in 459ms (compile: 203ms, render: 256ms)
+ GET / 200 in 220ms (compile: 115ms, render: 105ms)
+ GET / 200 in 179ms (compile: 78ms, render: 101ms)
+ GET / 200 in 90ms (compile: 77ms, render: 12ms)
+ GET / 200 in 273ms (compile: 87ms, render: 186ms)
+ ✓ Compiled in 32ms
+ GET / 200 in 393ms (compile: 187ms, render: 206ms)
+ ✓ Compiled in 19ms
+ GET / 200 in 428ms (compile: 212ms, render: 216ms)
+ ✓ Compiled in 18ms
+ GET / 200 in 430ms (compile: 213ms, render: 217ms)
+ ✓ Compiled in 53ms
+ GET / 200 in 402ms (compile: 189ms, render: 213ms)
