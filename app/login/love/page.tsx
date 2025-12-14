@@ -8,7 +8,7 @@ export default function LovePage() {
         <h2>Aşık Ayı</h2>
         <p>Bu sayfa "Aşık" butonuna tıklandığında gösterilir.</p>
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <img src="/bears/love.svg" alt="love" style={{ width: 160 }} />
+          <img src="/bears/love.png" alt="love" style={{ width: 160 }} />
         </div>
         <div style={{ marginTop: 18, textAlign: "center" }}>
           <Link href="/login">

@@ -8,7 +8,7 @@ export default function SadPage() {
         <h2>Üzgün Ayı</h2>
         <p>Bu sayfa "Üzgün" butonuna tıklandığında gösterilir.</p>
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <img src="/bears/sad.svg" alt="sad" style={{ width: 160 }} />
+          <img src="/bears/sad.png" alt="sad" style={{ width: 160 }} />
         </div>
         <div style={{ marginTop: 18, textAlign: "center" }}>
           <Link href="/login">

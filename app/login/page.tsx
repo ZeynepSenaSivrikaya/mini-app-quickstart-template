@@ -43,12 +43,12 @@ export default function LoginPage() {
   }
 
   const emotions = [
-    { key: "sad", label: "Üzgün", img: "/bears/sad.svg" },
-    { key: "happy", label: "Mutlu", img: "/bears/happy.svg" },
-    { key: "scared", label: "Korkmuş", img: "/bears/scared.svg" },
-    { key: "sleepy", label: "Uykulu", img: "/bears/sleepy.svg" },
-    { key: "love", label: "Aşık", img: "/bears/love.svg" },
-    { key: "fire", label: "Ateş", img: "/bears/fire.svg" },
+    { key: "sad", label: "Üzgün", img: "/bears/sad.png" },
+    { key: "happy", label: "Mutlu", img: "/bears/happy.png" },
+    { key: "scared", label: "Korkmuş", img: "/bears/scared.png" },
+    { key: "sleepy", label: "Uykulu", img: "/bears/sleepy.png" },
+    { key: "love", label: "Aşık", img: "/bears/love.png" },
+    { key: "fire", label: "Ateş", img: "/bears/fire.png" },
   ];
 
   return (

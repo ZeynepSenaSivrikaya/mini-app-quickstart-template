@@ -8,7 +8,7 @@ export default function FirePage() {
         <h2>Ateşli Ayı</h2>
         <p>Bu sayfa "Ateş" butonuna tıklandığında gösterilir.</p>
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <img src="/bears/fire.svg" alt="fire" style={{ width: 160 }} />
+          <img src="/bears/fire.png" alt="fire" style={{ width: 160 }} />
         </div>
         <div style={{ marginTop: 18, textAlign: "center" }}>
           <Link href="/login">

@@ -8,7 +8,7 @@ export default function HappyPage() {
         <h2>Mutlu Ayı</h2>
         <p>Bu sayfa "Mutlu" butonuna tıklandığında gösterilir.</p>
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <img src="/bears/happy.svg" alt="happy" style={{ width: 160 }} />
+          <img src="/bears/happy.png" alt="happy" style={{ width: 160 }} />
         </div>
         <div style={{ marginTop: 18, textAlign: "center" }}>
           <Link href="/login">
