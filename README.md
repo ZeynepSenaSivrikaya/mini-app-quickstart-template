@@ -56,6 +56,29 @@ The `minikit.config.ts` file configures your app's manifest.
 
 **Note:** You can update manifest metadata of your app after **deployment** if you don't have an idea yet.
 
+## Assets: Video & Mood Images (Braver Beaver)
+
+To use the custom intro video and mood icons in the home screen, place files under the `public/` folder:
+
+- Put your MP4 video at: `public/intro.mp4` (the homepage will autoplay this video as a background)
+- Optional poster image for browsers that don't autoplay: `public/intro-poster.jpg`
+- Mood images (optional). If you want the custom graphics to show on each mood button, place them as:
+	- `public/moods/cry.png`
+	- `public/moods/happy.png`
+	- `public/moods/sweat.png`
+	- `public/moods/sleep.png`
+	- `public/moods/love.png`
+	- `public/moods/fire.png`
+
+If the mood images are not provided, the app will show emoji fallbacks on the buttons.
+
+After adding the files, restart the dev server if needed:
+
+```bash
+npm run dev
+```
+
+
 ## Deployment
 
 ### 1. Deploy to Vercel
