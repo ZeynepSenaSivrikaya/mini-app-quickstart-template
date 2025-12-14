@@ -78,6 +78,26 @@ After adding the files, restart the dev server if needed:
 npm run dev
 ```
 
+### Slicing a single grid image into six mood icons (optional)
+
+If you have a single image that contains all six stickers in a 3x2 grid (like the attachment you provided), you can split it automatically using the included Node script (requires `sharp`):
+
+1. Put your source image into the repo (e.g. `public/moods-source.png`).
+2. Install dependencies (if not already installed):
+
+```bash
+npm install
+```
+
+3. Run the slicing script:
+
+```bash
+npm run slice:moods public/moods-source.png
+```
+
+This will create `public/moods/cry.png`, `happy.png`, `sweat.png`, `sleep.png`, `love.png`, and `fire.png` in that left-to-right, top-to-bottom order. You can edit or re-run the script if the order doesn't match your image layout.
+
+
 
 ## Deployment
 
