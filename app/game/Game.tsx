@@ -879,7 +879,7 @@ export default function Game() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 overflow-hidden" style={{ overscrollBehavior: 'none' }}>
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 overflow-auto">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '360px', marginBottom: 8 }}>
         <h2 className="text-2xl font-bold text-white">Scared Beaver Game</h2>
         <button onClick={handleHome} style={{ padding: '8px 20px', background: '#64748b', color: '#fff', borderRadius: 8, fontWeight: 600, border: 'none', fontSize: 14, cursor: 'pointer' }}>Home</button>
@@ -934,7 +934,7 @@ export default function Game() {
             onMouseUp={(e) => { e.preventDefault(); keysRef.current.ArrowUp = false; }}
             onTouchStart={(e) => { e.preventDefault(); keysRef.current.ArrowUp = true; }}
             onTouchEnd={(e) => { e.preventDefault(); keysRef.current.ArrowUp = false; }}
-            style={{ width: 70, height: 70, background: '#06b6d4', border: '3px solid #0891b2', borderRadius: 12, color: '#fff', fontSize: 28, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
+            style={{ width: 60, height: 60, background: '#06b6d4', border: '2px solid #0891b2', borderRadius: 10, color: '#fff', fontSize: 24, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
             ▲
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -943,7 +943,7 @@ export default function Game() {
               onMouseUp={(e) => { e.preventDefault(); keysRef.current.ArrowLeft = false; }}
               onTouchStart={(e) => { e.preventDefault(); keysRef.current.ArrowLeft = true; }}
               onTouchEnd={(e) => { e.preventDefault(); keysRef.current.ArrowLeft = false; }}
-              style={{ width: 70, height: 70, background: '#06b6d4', border: '3px solid #0891b2', borderRadius: 12, color: '#fff', fontSize: 28, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
+              style={{ width: 60, height: 60, background: '#06b6d4', border: '2px solid #0891b2', borderRadius: 10, color: '#fff', fontSize: 24, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
               ◄
             </button>
             <button 
@@ -951,7 +951,7 @@ export default function Game() {
               onMouseUp={(e) => { e.preventDefault(); keysRef.current.ArrowDown = false; }}
               onTouchStart={(e) => { e.preventDefault(); keysRef.current.ArrowDown = true; }}
               onTouchEnd={(e) => { e.preventDefault(); keysRef.current.ArrowDown = false; }}
-              style={{ width: 70, height: 70, background: '#06b6d4', border: '3px solid #0891b2', borderRadius: 12, color: '#fff', fontSize: 28, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
+              style={{ width: 60, height: 60, background: '#06b6d4', border: '2px solid #0891b2', borderRadius: 10, color: '#fff', fontSize: 24, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
               ▼
             </button>
             <button 
@@ -959,7 +959,7 @@ export default function Game() {
               onMouseUp={(e) => { e.preventDefault(); keysRef.current.ArrowRight = false; }}
               onTouchStart={(e) => { e.preventDefault(); keysRef.current.ArrowRight = true; }}
               onTouchEnd={(e) => { e.preventDefault(); keysRef.current.ArrowRight = false; }}
-              style={{ width: 70, height: 70, background: '#06b6d4', border: '3px solid #0891b2', borderRadius: 12, color: '#fff', fontSize: 28, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
+              style={{ width: 60, height: 60, background: '#06b6d4', border: '2px solid #0891b2', borderRadius: 10, color: '#fff', fontSize: 24, fontWeight: 700, cursor: 'pointer', userSelect: 'none', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}>
               ►
             </button>
           </div>
