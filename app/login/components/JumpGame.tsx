@@ -76,6 +76,7 @@ function JumpGame({
 
     // Platform çiz
     function drawPlatform(p: { x: number; y: number; w: number; h: number }) {
+      if (!ctx) return;
       if (grassImg.complete && grassImg.naturalWidth > 0) {
         ctx.drawImage(grassImg, p.x, p.y, p.w, 20);
       } else {
