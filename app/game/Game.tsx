@@ -46,17 +46,21 @@ function idx(x: number, y: number) {
 
 export default function Game() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-  const [running, setRunning] = React.useState(true);
+  const [running, setRunning] = React.useState(false); // Start paused
+  const [started, setStarted] = React.useState(false); // Track if game started
   const runningRef = React.useRef(running);
   const [anxiety, setAnxiety] = React.useState(0); // 0 - 100
   const [breathing, setBreathing] = React.useState(false);
   const [gameOver, setGameOver] = React.useState(false);
+  const [won, setWon] = React.useState(false); // Track win state
   const [message, setMessage] = React.useState<string | null>(null);
   const [lives, setLives] = React.useState(3);
   const [score, setScore] = React.useState(0);
   const [runKey, setRunKey] = React.useState(0);
   const anxietyRef = React.useRef(anxiety);
+  const scoreRef = React.useRef(score);
   React.useEffect(() => { anxietyRef.current = anxiety; }, [anxiety]);
+  React.useEffect(() => { scoreRef.current = score; }, [score]);
   React.useEffect(() => { runningRef.current = running; }, [running]);
   React.useEffect(() => { if (!running) { /* keep gameOver true if running was stopped due to game over */ } }, [running]);
   // ensure that when lives hit zero we set the game over state reliably
@@ -74,9 +78,9 @@ export default function Game() {
     canvas.width = 360;
     canvas.height = 640;
 
-    // preload images (use SVG sprites we added)
+    // preload images
     const playerImg = new Image();
-    playerImg.src = "/sprites/beaver.svg";
+    playerImg.src = "/bears/scared.png";
     const ghostImg = new Image();
     ghostImg.src = "/sprites/ghost.svg";
 
@@ -440,7 +444,17 @@ export default function Game() {
         const d = distance(b as Vec, player);
         if (d < 20) {
           b.taken = true;
-          setScore((s) => s + 25);
+          setScore((s) => {
+            const newScore = s + 1;
+            // Check win condition
+            if (newScore >= 200) {
+              setRunning(false);
+              setGameOver(true);
+              setWon(true);
+              setMessage("You Win! 🎉");
+            }
+            return newScore;
+          });
           setAnxiety((a) => Math.max(0, a - 10));
           setMessage("Tahta toplandı!");
           setTimeout(() => setMessage(null), 1200);
@@ -460,7 +474,7 @@ export default function Game() {
         if (pel.taken) continue;
         if (pel.tx === ptx && pel.ty === pty) {
           pel.taken = true;
-          setScore((s) => s + 10);
+          setScore((s) => s + 1);
           setAnxiety((a) => Math.max(0, a - 1));
         }
       }
@@ -592,18 +606,25 @@ export default function Game() {
 
       // HUD (anxiety UI removed per request)
 
+      // Set font for HUD
+      ctx.font = "bold 20px sans-serif";
+
       // lives (hearts) - draw nicer heart shapes
       for (let i = 0; i < lives; i++) {
         const hx = 14 + i * 22;
         const hy = 28;
         drawHeart(ctx, hx, hy, 12);
       }
-      // score
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillText(`Score: ${score}`, canvas.width - 90, 28);
+      // score - larger and more visible
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 3;
+      ctx.strokeText(`Score: ${scoreRef.current}`, canvas.width - 120, 28);
+      ctx.fillText(`Score: ${scoreRef.current}`, canvas.width - 120, 28);
 
       // messages
       if (message) {
+        ctx.font = "bold 16px sans-serif";
         ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fillRect(canvas.width / 2 - 120, 28, 240, 28);
         ctx.fillStyle = "#fff";
@@ -642,25 +663,77 @@ export default function Game() {
   // Show vignette only during the Stop & Breathe pause
   const vignette = breathing;
 
+  const handleStart = () => {
+    setStarted(true);
+    setRunning(true);
+    setGameOver(false);
+    setWon(false);
+    setAnxiety(0);
+    setLives(3);
+    setScore(0);
+    setMessage(null);
+    setRunKey(k => k + 1);
+  };
+
+  const handleHome = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
-      <h2 className="text-2xl font-bold text-white mb-2">Mini Anxiety Game</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '360px', marginBottom: 8 }}>
+        <h2 className="text-2xl font-bold text-white">Scared Beaver Game</h2>
+        <button onClick={handleHome} style={{ padding: '8px 20px', background: '#64748b', color: '#fff', borderRadius: 8, fontWeight: 600, border: 'none', fontSize: 14, cursor: 'pointer' }}>Home</button>
+      </div>
       <div className="relative bg-slate-800 rounded-3xl shadow-2xl overflow-hidden" style={{ width: '360px', height: '640px' }}>
         <canvas ref={canvasRef} className="block" />
+        
+        {/* Start Screen */}
+        {!started && !gameOver && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'rgba(0,0,0,0.85)' }}>
+            <img src="/bears/scared.png" alt="Scared Beaver" style={{ width: 100, height: 100, marginBottom: 20, borderRadius: '50%' }} />
+            <div style={{ color: '#fff', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Scared Beaver</div>
+            <div style={{ color: '#cbd5e1', fontSize: 16, marginBottom: 24, textAlign: 'center', maxWidth: 280 }}>
+              Help the scared beaver escape from ghosts!<br/>
+              Collect boards and pellets while avoiding danger.
+            </div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <button onClick={handleStart} style={{ padding: '12px 32px', background: '#06b6d4', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', fontSize: 18, cursor: 'pointer' }}>Start</button>
+              <button onClick={handleHome} style={{ padding: '12px 32px', background: '#64748b', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', fontSize: 18, cursor: 'pointer' }}>Home</button>
+            </div>
+          </div>
+        )}
+        
+        {/* Game Over Screen */}
         {gameOver && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'rgba(0,0,0,0.6)' }}>
-            <div style={{ color: '#fff', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>GAME OVER</div>
-            <button onClick={() => { setAnxiety(0); setMessage(null); setRunning(true); setLives(3); setScore(0); setRunKey(k => k + 1); setGameOver(false); }} className="px-4 py-2 bg-cyan-500 rounded text-white">Restart</button>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: won ? 'rgba(16, 185, 129, 0.9)' : 'rgba(0,0,0,0.85)' }}>
+            {won ? (
+              <>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+                <div style={{ color: '#fff', fontSize: 32, fontWeight: 700, marginBottom: 12 }}>YOU WIN!</div>
+                <div style={{ color: '#fff', fontSize: 18, marginBottom: 24 }}>Congratulations! Final Score: {score}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ color: '#fff', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>GAME OVER</div>
+                <div style={{ color: '#cbd5e1', fontSize: 18, marginBottom: 24 }}>Final Score: {score}</div>
+              </>
+            )}
+            <div style={{ display: 'flex', gap: 16 }}>
+              <button onClick={handleStart} style={{ padding: '12px 32px', background: '#06b6d4', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', fontSize: 18, cursor: 'pointer' }}>Try Again</button>
+              <button onClick={handleHome} style={{ padding: '12px 32px', background: '#64748b', color: '#fff', borderRadius: 12, fontWeight: 700, border: 'none', fontSize: 18, cursor: 'pointer' }}>Home</button>
+            </div>
           </div>
         )}
       </div>
       <div className="flex gap-4 mt-4">
-        <button onClick={() => { setAnxiety(0); setMessage(null); setRunning(true); setLives(3); setScore(0); setRunKey(k => k + 1); setGameOver(false); }} className="px-4 py-2 bg-cyan-500 rounded text-white">Restart</button>
-        <div className="text-sm text-gray-300">Arrow keys / WASD — Shift: Dash — Space: Breathe</div>
+        <div className="text-lg text-gray-300">Arrow keys / WASD — Shift: Dash — Space: Breathe</div>
       </div>
-      <div className="text-sm text-gray-200 mt-2">Lives: <strong>{lives}</strong> — Score: <strong>{score}</strong></div>
-      {!running && (
-        <div className="mt-2 text-sm text-yellow-200">Kaçmak bazen iyidir, ama yüzleşmek kazandırır.</div>
+      <div className="text-xl font-bold text-gray-200 mt-3">Lives: <span className="text-red-400">{lives}</span> — Score: <span className="text-yellow-400">{score}</span></div>
+      {!running && started && !gameOver && (
+        <div className="mt-2 text-base text-yellow-200">Paused — Press any key to continue</div>
       )}
     </div>
   );
