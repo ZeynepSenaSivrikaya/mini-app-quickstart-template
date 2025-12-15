@@ -8,12 +8,29 @@ export default function Sleepy() {
   const [gameOver, setGameOver] = React.useState(false);
   const [running, setRunning] = React.useState(true);
   const [showMenu, setShowMenu] = React.useState(false);
+  const [showHomeModal, setShowHomeModal] = React.useState(false);
 
   React.useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    canvas.width = 500;
-    canvas.height = 700;
+    // Portrait mobile: fill viewport, keep 9:16 aspect
+    function resizeCanvas() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // 9:16 aspect ratio
+      let width = vw;
+      let height = Math.round((vw / 9) * 16);
+      if (height > vh) {
+        height = vh;
+        width = Math.round((vh / 16) * 9);
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     // Görseller
     const playerImg = new Image();
@@ -191,43 +208,58 @@ export default function Sleepy() {
       cancelAnimationFrame(req);
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
+      window.removeEventListener('resize', resizeCanvas);
     };
   }, [running, gameOver]);
 
   return (
-    <div className="p-4 flex flex-col items-center gap-4 bg-slate-900 min-h-screen relative">
-      {/* Top-right in-game menu */}
-      <div className="absolute top-4 right-4 z-20">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 min-h-screen min-w-full max-w-full max-h-screen overflow-hidden" style={{ aspectRatio: '9/16' }}>
+      {/* Home icon top-right */}
+      <div className="absolute top-4 right-4 z-30">
         <button
-          onClick={() => setShowMenu((v) => !v)}
-          className="bg-slate-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-slate-600 focus:outline-none"
-          aria-label="Menu"
+          onClick={() => { setRunning(false); setShowHomeModal(true); }}
+          className="bg-white text-slate-800 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-slate-200 focus:outline-none"
+          aria-label="Home"
         >
-          <span className="text-2xl">☰</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-7.5L21 12M4.5 10.5V19a1.5 1.5 0 001.5 1.5h3.75m6 0H18a1.5 1.5 0 001.5-1.5v-8.5" />
+          </svg>
         </button>
-        {showMenu && (
-          <div className="mt-2 bg-white rounded-lg shadow-xl py-2 px-4 min-w-[140px] flex flex-col gap-2">
-            <button
-              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-slate-800"
-              onClick={() => { setRunning(false); setShowMenu(false); }}
-            >Pause</button>
-            <button
-              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-slate-800"
-              onClick={() => { setRunning(true); setShowMenu(false); }}
-            >Resume</button>
-            <button
-              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-red-600"
-              onClick={() => { window.location.href = "/"; }}
-            >Exit Game</button>
-          </div>
-        )}
       </div>
-      <h1 className="text-3xl font-bold text-white">☕ Coffee Run ☕</h1>
+      {/* Home modal */}
+      {showHomeModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 min-w-[260px] max-w-[90vw]">
+            <div className="text-3xl text-slate-800 font-bold mb-2">Game Paused</div>
+            <div className="flex flex-col gap-3 w-full">
+              <button
+                className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold text-lg transition"
+                onClick={() => { window.location.href = "/"; }}
+              >Return to Menu</button>
+              <button
+                className="w-full px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold text-lg transition"
+                onClick={() => { setShowHomeModal(false); setRunning(true); }}
+              >Resume Game</button>
+              <button
+                className="w-full px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-semibold text-lg transition"
+                onClick={() => {
+                  scoreRef.current = 0;
+                  setDisplayScore(0);
+                  setGameOver(false);
+                  setRunning(true);
+                  setShowHomeModal(false);
+                }}
+              >Restart Game</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <h1 className="text-3xl font-bold text-white mt-4">☕ Coffee Run ☕</h1>
       <p className="text-slate-300 text-center max-w-md">
         Finals week! Collect coffee and don't fall asleep! Avoid the beds or you'll doze off!
       </p>
-      <div className="relative bg-slate-800 p-2 rounded-lg shadow-2xl">
-        <canvas ref={canvasRef} className="rounded" style={{ imageRendering: 'auto' }} />
+      <div className="relative bg-slate-800 p-2 rounded-lg shadow-2xl w-full flex justify-center items-center" style={{ aspectRatio: '9/16', maxWidth: '420px' }}>
+        <canvas ref={canvasRef} className="rounded" style={{ imageRendering: 'auto', width: '100%', height: '100%' }} />
         {gameOver && (
           <div className="absolute inset-0 flex items-center justify-center flex-col bg-black/80 rounded">
             <div className="text-6xl mb-4">😴</div>
@@ -248,7 +280,7 @@ export default function Sleepy() {
           </div>
         )}
       </div>
-      <div className="text-slate-300 text-sm text-center">
+      <div className="text-slate-300 text-sm text-center mt-2">
         <div>⬅️ A / Left Arrow - Move Left</div>
         <div>➡️ D / Right Arrow - Move Right</div>
         <div className="mt-2 text-amber-400">✨ The game speeds up over time!</div>
