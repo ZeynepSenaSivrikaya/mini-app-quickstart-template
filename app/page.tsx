@@ -8,7 +8,7 @@ const MOODS = [
 	{ id: "happy", label: "Happy", img: "/bears/happy.png", route: "/game-jump" },
 	{ id: "scared", label: "Scared", img: "/bears/scared.png", route: "/game" },
 	{ id: "sleepy", label: "Sleepy", img: "/bears/sleepy.png", route: "/game-sleepy" },
-	{ id: "love", label: "Love", img: "/bears/love.png", route: "/" },
+	{ id: "love", label: "Love", img: "/bears/love.png", route: "/game-love" },
 	{ id: "fire", label: "Fire", img: "/bears/fire.png", route: "/game-fire" },
 ];
 
