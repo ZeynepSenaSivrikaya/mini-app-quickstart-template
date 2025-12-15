@@ -90,13 +90,14 @@ export default function Sleepy() {
       if (keys.ArrowRight || keys.d) player.x += player.speed * dt;
       player.x = Math.max(player.width / 2, Math.min(player.x, canvas.width - player.width / 2));
 
-      // Zamana göre hız artışı (her 10 saniyede %20 hızlanır)
+      // Zamana göre hız artışı (her 5 saniyede %25 hızlanır)
       const elapsedSeconds = (now - startTime) / 1000;
-      gameSpeed = 1 + Math.floor(elapsedSeconds / 10) * 0.2;
+      gameSpeed = 1 + Math.floor(elapsedSeconds / 5) * 0.25;
 
       // Obje spawn (kahve ve yatak)
       if (now - lastSpawn > 800 / gameSpeed) {
-        const type = Math.random() > 0.35 ? "coffee" : "bed";
+        // Daha fazla yatak gelsin: kahve olma ihtimali %35'e düşürüldü
+        const type = Math.random() > 0.65 ? "coffee" : "bed";
         const x = Math.random() * (canvas.width - 80) + 40;
         const size = type === "coffee" ? 50 : 60;
         items.push({ x, y: -30, type, speed: 2.5 + gameSpeed * 0.5, size });
