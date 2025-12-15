@@ -1,0 +1,35 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Fincan gövdesi -->
+  <rect x="40" y="70" width="100" height="70" rx="8" fill="#C4A57B" stroke="#8B6914" stroke-width="2"/>
+  
+  <!-- Fincan iç (kahve) -->
+  <rect x="45" y="75" width="90" height="60" rx="6" fill="#3E2723" stroke="none"/>
+  <ellipse cx="90" cy="75" rx="45" ry="8" fill="#5D4037"/>
+  
+  <!-- Kahve yüzeyi parlaklık -->
+  <ellipse cx="75" cy="73" rx="25" ry="6" fill="#8B6F47" opacity="0.6"/>
+  
+  <!-- Fincan tabanı -->
+  <ellipse cx="90" cy="140" rx="50" ry="8" fill="#A0826D" stroke="#8B6914" stroke-width="1.5"/>
+  
+  <!-- Fincan kulpu -->
+  <path d="M 145 85 Q 175 85, 175 105 Q 175 125, 145 125" 
+        stroke="#C4A57B" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <path d="M 150 90 Q 168 90, 168 105 Q 168 120, 150 120" 
+        stroke="#8B6914" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Sıcak buhar -->
+  <g opacity="0.75">
+    <!-- Sol buhar -->
+    <path d="M 60 65 Q 55 45, 60 25" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="60" cy="25" r="3" fill="white" opacity="0.8"/>
+    
+    <!-- Orta buhar -->
+    <path d="M 90 60 Q 90 40, 90 20" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="90" cy="20" r="3" fill="white" opacity="0.8"/>
+    
+    <!-- Sağ buhar -->
+    <path d="M 120 65 Q 125 45, 120 25" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="120" cy="25" r="3" fill="white" opacity="0.8"/>
+  </g>
+</svg>

@@ -1,0 +1,2 @@
+Bu dosya için gerçek PNG görseli gerekiyor.
+Lütfen yatak görselini /public/bears/bed.png olarak kaydedin.

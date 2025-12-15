@@ -1,0 +1,33 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Kahve fincanı gövdesi -->
+  <ellipse cx="100" cy="140" rx="55" ry="15" fill="#8B4513"/>
+  <rect x="45" y="90" width="110" height="50" fill="#A0522D" rx="8"/>
+  <rect x="50" y="95" width="100" height="40" fill="#D2691E" rx="6"/>
+  
+  <!-- Kahve içeriği -->
+  <ellipse cx="100" cy="90" rx="50" ry="12" fill="#3E2723"/>
+  <ellipse cx="100" cy="88" rx="48" ry="10" fill="#5D4037"/>
+  
+  <!-- Kahve yüzeyi parlaklık -->
+  <ellipse cx="85" cy="86" rx="15" ry="4" fill="#8B6F47" opacity="0.5"/>
+  
+  <!-- Fincan kulpu -->
+  <path d="M 155 100 Q 175 100, 175 120 Q 175 140, 155 140" 
+        stroke="#8B4513" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M 158 105 Q 170 105, 170 120 Q 170 135, 158 135" 
+        stroke="#D2691E" stroke-width="10" fill="none" stroke-linecap="round"/>
+  
+  <!-- Sıcak buhar efekti -->
+  <g opacity="0.8">
+    <path d="M 65 75 Q 60 55, 65 35 Q 68 20, 65 10" 
+          stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M 100 70 Q 95 50, 100 30 Q 103 15, 100 5" 
+          stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M 135 75 Q 140 55, 135 35 Q 132 20, 135 10" 
+          stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Fincan üzerinde kalp süsleme -->
+  <path d="M 90 115 Q 90 110, 95 110 Q 100 110, 100 115 Q 100 110, 105 110 Q 110 110, 110 115 Q 100 125, 100 125 Q 100 125, 90 115" 
+        fill="#CD853F" opacity="0.6"/>
+</svg>
