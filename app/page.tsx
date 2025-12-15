@@ -94,8 +94,10 @@ export default function Home() {
                     onClick={() => {
                       if (mood.id === "fire") {
                         router.push("/game-fire");
+                      } else if (mood.id === "scared") {
+                        router.push("/game");
                       } else {
-                        router.push(`/login/${mood.id}`);
+                        router.push("/"); // Ana sayfaya yönlendir veya başka bir geçerli route
                       }
                     }}
                     className="relative w-28 h-28 rounded-full bg-white/6 border border-white/10 flex items-center justify-center shadow-lg overflow-hidden transform transition duration-200 hover:scale-105 hover:shadow-2xl active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
