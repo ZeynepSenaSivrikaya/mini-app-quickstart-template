@@ -20,14 +20,22 @@ export default function Home() {
 	React.useEffect(() => {
 		const v = videoRef.current;
 		if (!v) return;
-		v.play().catch(() => {});
+		function handleLoaded() {
+			v.currentTime = 1;
+			v.muted = false;
+			v.play().catch(() => {});
+		}
+		v.addEventListener("loadedmetadata", handleLoaded);
 		function onPause() {
 			const vv = videoRef.current;
 			if (!vv) return;
 			try { vv.play().catch(() => {}); } catch (_) {}
 		}
 		v.addEventListener("pause", onPause);
-		return () => v.removeEventListener("pause", onPause);
+		return () => {
+			v.removeEventListener("loadedmetadata", handleLoaded);
+			v.removeEventListener("pause", onPause);
+		};
 	}, []);
 
 	React.useEffect(() => {
@@ -61,9 +69,9 @@ export default function Home() {
 					<div className="relative aspect-[9/16] bg-black">
 						<video
 							ref={videoRef}
-							className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+							className="absolute inset-0 w-full h-[130%] object-cover pointer-events-none"
+							style={{ position: 'absolute', top: 'auto', bottom: 0, transform: 'translateY(14%)' }}
 							autoPlay
-							muted
 							loop
 							playsInline
 							poster="/intro-poster.jpg"
