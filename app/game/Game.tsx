@@ -57,8 +57,11 @@ export default function Game() {
   const [lives, setLives] = React.useState(3);
   const [score, setScore] = React.useState(0);
   const [runKey, setRunKey] = React.useState(0);
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const anxietyRef = React.useRef(anxiety);
   const scoreRef = React.useRef(score);
+  const keysPressed = React.useRef<{[key: string]: boolean}>({});
+  const touchStart = React.useRef<{x: number, y: number} | null>(null);
   React.useEffect(() => { anxietyRef.current = anxiety; }, [anxiety]);
   React.useEffect(() => { scoreRef.current = score; }, [score]);
   React.useEffect(() => { runningRef.current = running; }, [running]);
@@ -118,12 +121,18 @@ export default function Game() {
     let keys: Record<string, boolean> = {};
     let pausedUntil = 0; // breathe pause
     const particles: Array<{ x:number; y:number; vx:number; vy:number; life:number; color:string; size:number }> = [];
+    let pelletsCollected = 0; // Track pellets collected for difficulty scaling
 
     function handleKey(e: KeyboardEvent) {
       // ignore controls when the game is over
       if (gameOver) return;
-      if (e.type === "keydown") keys[e.key] = true;
-      else keys[e.key] = false;
+      if (e.type === "keydown") {
+        keys[e.key] = true;
+        keysPressed.current[e.key.toLowerCase()] = true;
+      } else {
+        keys[e.key] = false;
+        keysPressed.current[e.key.toLowerCase()] = false;
+      }
       // Space = stop & breathe mechanic
       if (e.type === "keydown" && e.key === " ") {
         // prevent default page scroll
@@ -286,10 +295,12 @@ export default function Game() {
       if (now > pausedUntil) {
         let dx = 0;
         let dy = 0;
-        if (keys.ArrowUp || keys.w) dy -= 1;
-        if (keys.ArrowDown || keys.s) dy += 1;
-        if (keys.ArrowLeft || keys.a) dx -= 1;
-        if (keys.ArrowRight || keys.d) dx += 1;
+        // Check both arrow keys and WASD
+        const kp = keysPressed.current;
+        if (keys.ArrowUp || keys.w || kp["w"] || kp["arrowup"]) dy -= 1;
+        if (keys.ArrowDown || keys.s || kp["s"] || kp["arrowdown"]) dy += 1;
+        if (keys.ArrowLeft || keys.a || kp["a"] || kp["arrowleft"]) dx -= 1;
+        if (keys.ArrowRight || keys.d || kp["d"] || kp["arrowright"]) dx += 1;
         if (dx !== 0 || dy !== 0) {
           const mag = Math.sqrt(dx * dx + dy * dy) || 1;
           const anxietySlow = curAnx > 70 ? 0.6 : curAnx > 40 ? 0.85 : 1;
@@ -474,9 +485,27 @@ export default function Game() {
         if (pel.taken) continue;
         if (pel.tx === ptx && pel.ty === pty) {
           pel.taken = true;
+          pelletsCollected++;
           setScore((s) => s + 1);
           setAnxiety((a) => Math.max(0, a - 1));
         }
+      }
+
+      // Auto-respawn pellets when all are taken
+      const allPelletsTaken = pellets.every(p => p.taken);
+      if (allPelletsTaken) {
+        // Reset all pellets
+        for (const pel of pellets) {
+          pel.taken = false;
+        }
+      }
+
+      // Increase difficulty based on pellets collected
+      const difficultyLevel = Math.floor(pelletsCollected / pellets.length);
+      for (let i = 0; i < ghosts.length; i++) {
+        const baseSpeed = 0.55 + i * 0.08;
+        const speedMultiplier = 1 + difficultyLevel * 0.25; // +25% speed per full cycle
+        ghosts[i].speed = baseSpeed * speedMultiplier;
       }
 
       // spawn powers occasionally
@@ -534,21 +563,47 @@ export default function Game() {
         ctx.fill();
       }
 
-      // draw boards (wooden planks)
+      // draw boards (wooden logs)
       for (const b of boards) {
         if (b.taken) continue;
         ctx.save();
         ctx.translate(b.x + shakeX, b.y + shakeY);
         ctx.rotate((Math.PI / 180) * ((b.x + b.y) % 20 - 10));
-        ctx.fillStyle = "#a16207"; // wood
-        ctx.fillRect(-10, -5, 20, 10);
-        ctx.strokeStyle = "#7c2d12";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-10, -5, 20, 10);
-        // nails
-        ctx.fillStyle = "#2b2b2b";
-        ctx.beginPath(); ctx.arc(-6, 0, 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(6, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+        
+        // Draw a realistic wooden log
+        const logW = 24;
+        const logH = 10;
+        
+        // Main log body - dark brown
+        ctx.fillStyle = "#8b6914";
+        ctx.beginPath();
+        ctx.moveTo(-logW/2, -logH/2);
+        ctx.quadraticCurveTo(-logW/2, -logH/1.8, -logW/3, -logH/2.5);
+        ctx.quadraticCurveTo(0, -logH/1.5, logW/3, -logH/2.5);
+        ctx.quadraticCurveTo(logW/2, -logH/1.8, logW/2, -logH/2);
+        ctx.lineTo(logW/2, logH/2);
+        ctx.quadraticCurveTo(logW/2, logH/1.8, logW/3, logH/2.5);
+        ctx.quadraticCurveTo(0, logH/1.5, -logW/3, logH/2.5);
+        ctx.quadraticCurveTo(-logW/2, logH/1.8, -logW/2, logH/2);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Wood grain lines
+        ctx.strokeStyle = "#6b5410";
+        ctx.lineWidth = 0.5;
+        for (let i = -4; i <= 4; i += 2) {
+          ctx.beginPath();
+          ctx.moveTo(-logW/2 + 1, i);
+          ctx.lineTo(logW/2 - 1, i);
+          ctx.stroke();
+        }
+        
+        // Highlight/shading
+        ctx.fillStyle = "rgba(255, 200, 100, 0.3)";
+        ctx.beginPath();
+        ctx.arc(-logW/3, -logH/3, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
         ctx.restore();
       }
 
@@ -622,6 +677,67 @@ export default function Game() {
       ctx.strokeText(`Score: ${scoreRef.current}`, canvas.width - 120, 28);
       ctx.fillText(`Score: ${scoreRef.current}`, canvas.width - 120, 28);
 
+      // Home icon at top-left
+      const iconSize = 28;
+      const iconX = 14;
+      const iconY = 50;
+      ctx.save();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#06b6d4"; // cyan theme color
+      // Roof (filled triangle)
+      ctx.beginPath();
+      ctx.moveTo(iconX + iconSize*0.1, iconY + iconSize*0.6);
+      ctx.lineTo(iconX + iconSize*0.5, iconY + iconSize*0.05);
+      ctx.lineTo(iconX + iconSize*0.9, iconY + iconSize*0.6);
+      ctx.closePath();
+      ctx.fillStyle = "#06b6d4";
+      ctx.fill();
+      ctx.stroke();
+      // Body
+      const bodyX = iconX + iconSize*0.2;
+      const bodyY = iconY + iconSize*0.58;
+      const bodyW = iconSize*0.6;
+      const bodyH = iconSize*0.37;
+      ctx.beginPath();
+      (ctx as any).roundRect(bodyX, bodyY, bodyW, bodyH, 4);
+      ctx.stroke();
+      // Door
+      ctx.beginPath();
+      ctx.moveTo(iconX + iconSize*0.52, iconY + iconSize*0.68);
+      ctx.arc(iconX + iconSize*0.52, iconY + iconSize*0.74, iconSize*0.08, Math.PI, 0, false);
+      ctx.lineTo(iconX + iconSize*0.6, iconY + iconSize*0.95);
+      ctx.lineTo(iconX + iconSize*0.44, iconY + iconSize*0.95);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+
+      // Menu dropdown when home icon is clicked
+      if (menuOpen) {
+        const menuW = 140;
+        const menuH = 90;
+        const menuX = iconX;
+        const menuY = iconY + iconSize + 6;
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = "#1e293b";
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        (ctx as any).roundRect(menuX, menuY, menuW, menuH, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "left";
+        ctx.fillText("Resume", menuX + 12, menuY + 26);
+        ctx.fillText("Restart", menuX + 12, menuY + 50);
+        ctx.fillText("Home", menuX + 12, menuY + 74);
+        ctx.restore();
+      }
+
       // messages
       if (message) {
         ctx.font = "bold 16px sans-serif";
@@ -653,10 +769,81 @@ export default function Game() {
 
     req = requestAnimationFrame(step);
 
+    // Touch swipe handlers
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      const dx = touchEnd.x - touchStart.current.x;
+      const dy = touchEnd.y - touchStart.current.y;
+      const distance = Math.max(Math.abs(dx), Math.abs(dy));
+      if (distance > 40) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+          if (dx < 0) keys.ArrowLeft = true;
+          else keys.ArrowRight = true;
+          setTimeout(() => { keys.ArrowLeft = false; keys.ArrowRight = false; }, 100);
+        } else {
+          if (dy < 0) keys.ArrowUp = true;
+          else keys.ArrowDown = true;
+          setTimeout(() => { keys.ArrowUp = false; keys.ArrowDown = false; }, 100);
+        }
+      }
+      touchStart.current = null;
+    };
+
+    // Canvas click handler for home menu
+    const handleCanvasClick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const iconSize = 28;
+      const iconX = 14;
+      const iconY = 50;
+      
+      // Home icon click
+      if (x >= iconX && x <= iconX + iconSize && y >= iconY && y <= iconY + iconSize) {
+        setMenuOpen(m => !m);
+        return;
+      }
+      
+      // Menu click detection
+      if (menuOpen) {
+        const menuW = 140;
+        const menuH = 90;
+        const menuX = iconX;
+        const menuY = iconY + iconSize + 6;
+        if (x >= menuX && x <= menuX + menuW && y >= menuY && y <= menuY + menuH) {
+          if (y <= menuY + 30) {
+            setRunning(true);
+            setMenuOpen(false);
+          } else if (y <= menuY + 60) {
+            setMenuOpen(false);
+            handleRestart();
+          } else {
+            setMenuOpen(false);
+            handleHome();
+          }
+        } else {
+          setMenuOpen(false);
+        }
+      }
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, false);
+    canvas.addEventListener('touchend', handleTouchEnd, false);
+    canvas.addEventListener('click', handleCanvasClick, false);
+
     return () => {
       cancelAnimationFrame(req);
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
+      canvas.removeEventListener('touchstart', handleTouchStart, false);
+      canvas.removeEventListener('touchend', handleTouchEnd, false);
+      canvas.removeEventListener('click', handleCanvasClick, false);
     };
   }, [runKey]);
 
@@ -672,6 +859,19 @@ export default function Game() {
     setLives(3);
     setScore(0);
     setMessage(null);
+    setRunKey(k => k + 1);
+  };
+
+  const handleRestart = () => {
+    setStarted(true);
+    setRunning(true);
+    setGameOver(false);
+    setWon(false);
+    setAnxiety(0);
+    setLives(3);
+    setScore(0);
+    setMessage(null);
+    setMenuOpen(false);
     setRunKey(k => k + 1);
   };
 
