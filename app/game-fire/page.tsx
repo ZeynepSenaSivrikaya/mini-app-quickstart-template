@@ -33,8 +33,9 @@ export default function GameFirePage() {
   const [explosions, setExplosions] = useState<Explosion[]>([]);
   const [playing, setPlaying] = useState(false);
   const [score, setScore] = useState(0);
-  const INITIAL_SPAWN = 350;
-  const INITIAL_LIFESPAN = 700;
+  // Easier start: slower spawn, longer lifespan
+  const INITIAL_SPAWN = 600; // ms, slower fire spawn
+  const INITIAL_LIFESPAN = 1200; // ms, fires last longer
   const [spawnInterval, setSpawnInterval] = useState(INITIAL_SPAWN);
   const [fireLifespan, setFireLifespan] = useState(INITIAL_LIFESPAN);
   const [elapsed, setElapsed] = useState(0);
@@ -47,36 +48,54 @@ export default function GameFirePage() {
 
   // Helper: getBgColor
   function getBgColor() {
-    // Oyun ilerledikçe arka plan rengi değişsin
-    // t: 0 (başlangıç) -> 1 (son)
-    const t = Math.min(1, Math.max(0, elapsed / 120000));
-    let r, g, b;
-    if (t < 0.7) {
-      const tt = t / 0.7;
-      r = Math.round(184 + (75 - 184) * tt + (34 - 75) * Math.max(0, (tt - 0.7) / 0.3));
-      g = 0;
-      b = Math.round(0 + (20 - 0) * tt + (10 - 20) * Math.max(0, (tt - 0.7) / 0.3));
+    // Use number of unextinguished fires to drive color
+    const maxFires = MAX_UNEXTINGUISHED;
+    const fireCount = fires.length;
+    let t = Math.min(1, Math.max(0, fireCount / maxFires));
+
+    // Center: blue -> red -> burgundy
+    // Edge: red -> burgundy -> black
+    let centerColor, edgeColor;
+    if (t < 0.5) {
+      // blue to red (center)
+      const f = t / 0.5;
+      centerColor = {
+        r: Math.round(30 + (200 - 30) * f),
+        g: Math.round(80 + (30 - 80) * f),
+        b: Math.round(220 + (60 - 220) * f)
+      };
+      // edge: red
+      edgeColor = { r: 200, g: 30, b: 60 };
+    } else if (t < 0.8) {
+      // red to burgundy (center)
+      const f = (t - 0.5) / 0.3;
+      centerColor = {
+        r: Math.round(200 + (90 - 200) * f),
+        g: Math.round(30 + (20 - 30) * f),
+        b: Math.round(60 + (40 - 60) * f)
+      };
+      // edge: red to burgundy
+      edgeColor = {
+        r: Math.round(200 + (90 - 200) * f),
+        g: Math.round(30 + (20 - 30) * f),
+        b: Math.round(60 + (40 - 60) * f)
+      };
     } else {
-      const tt = (t - 0.8) / 0.2;
-      r = Math.round(34 * (1 - tt));
-      g = 0;
-      b = Math.round(10 * (1 - tt));
+      // burgundy to black (center)
+      const f = (t - 0.8) / 0.2;
+      centerColor = {
+        r: Math.round(90 + (20 - 90) * f),
+        g: Math.round(20 + (10 - 20) * f),
+        b: Math.round(40 + (10 - 40) * f)
+      };
+      // edge: burgundy to black
+      edgeColor = {
+        r: Math.round(90 + (0 - 90) * f),
+        g: Math.round(20 + (0 - 20) * f),
+        b: Math.round(40 + (0 - 40) * f)
+      };
     }
-    let edgeBlackness = 0;
-    if (score <= 0) {
-      edgeBlackness = Math.min(1, Math.max(0, (0 - score) / 200));
-    }
-    let edgeColor;
-    if (t > 0.7 || edgeBlackness > 0) {
-      const base = t > 0.7 ? 0 : 184;
-      const rEdge = Math.round(base * (1 - edgeBlackness));
-      const gEdge = 0;
-      const bEdge = Math.round(0 * (1 - edgeBlackness));
-      edgeColor = `rgb(${rEdge},${gEdge},${bEdge})`;
-    } else {
-      edgeColor = `#b80000`;
-    }
-    return `radial-gradient(ellipse at center, rgb(${r},${g},${b}) 60%, ${edgeColor} 100%)`;
+    return `radial-gradient(ellipse at center, rgb(${centerColor.r},${centerColor.g},${centerColor.b}) 0%, rgb(${edgeColor.r},${edgeColor.g},${edgeColor.b}) 100%)`;
   }
 
   // Helper: clearSpawnTimer
@@ -150,7 +169,24 @@ export default function GameFirePage() {
       }, 600);
     }, fireLifespan);
   }
-  // (Çift tanım kaldırıldı)
+
+  // Game end effect: trigger when score <= -200 (lose) or >= 1000 (win)
+  useEffect(() => {
+    if (playing && score <= GAME_OVER_SCORE) {
+      if (score < GAME_OVER_SCORE) setScore(GAME_OVER_SCORE); // Clamp to -200
+      setPlaying(false);
+      setGameOver(true);
+      setWin(false);
+      clearSpawnTimer();
+      clearAllFireTimers();
+    } else if (playing && score >= WIN_SCORE) {
+      setPlaying(false);
+      setGameOver(false);
+      setWin(true);
+      clearSpawnTimer();
+      clearAllFireTimers();
+    }
+  }, [score, playing]);
 
   useEffect(() => {
     if (!playing) {
@@ -300,10 +336,10 @@ export default function GameFirePage() {
       justifyContent: "center",
       borderRadius: 18,
     }}>
-      <img src="/fireandbeaver/boom.png" alt="Patlama" style={{ width: 120, height: 120, marginBottom: 18, borderRadius: "50%", boxShadow: "0 4px 24px #b8000033", animation: "boom-anim 1.2s infinite alternate" }} />
+      <img src="/fireandbeaver/boom.png" alt="Explosion" style={{ width: 120, height: 120, marginBottom: 18, borderRadius: "50%", boxShadow: "0 4px 24px #b8000033", animation: "boom-anim 1.2s infinite alternate" }} />
       <h2 style={{ color: "#fff", fontWeight: 900, fontSize: 32, margin: 0, marginBottom: 10, letterSpacing: 2 }}>GAME OVER</h2>
       <div style={{ color: "#fff", fontSize: 20, marginBottom: 18, textAlign: "center", maxWidth: 260 }}>
-        Çok fazla ateş patladı veya skor çok düştü!<br />Skorun: <b>{score}</b>
+        Too many fires exploded or your score dropped too low!<br />Score: <b>{score}</b>
       </div>
       <div style={{ display: "flex", gap: 16 }}>
         <button onClick={() => {
@@ -311,10 +347,11 @@ export default function GameFirePage() {
           setFires([]);
           setGameOver(false);
           setPlaying(false);
-          setSpawnInterval(INITIAL_SPAWN);
-          setFireLifespan(INITIAL_LIFESPAN);
-        }} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#b80000", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #b8000033", marginBottom: 10 }}>Tekrar Oyna</button>
-        <button onClick={() => router.push("/")} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#1e90ff", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #1e90ff33", marginBottom: 10 }}>Geri Dön</button>
+          setWin(false);
+          setSpawnInterval(600);
+          setFireLifespan(1200);
+        }} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#b80000", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #b8000033", marginBottom: 10 }}>Restart</button>
+        <button onClick={() => router.push("/")} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#1e90ff", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #1e90ff33", marginBottom: 10 }}>Go Back</button>
       </div>
     </div>
   )}
@@ -333,10 +370,10 @@ export default function GameFirePage() {
           justifyContent: "center",
           borderRadius: 18,
         }}>
-          <img src="/fireandbeaver/coolbeaver.png" alt="Kazandınız" style={{ width: 120, height: 120, marginBottom: 18, borderRadius: "50%", boxShadow: "0 4px 24px #1e90ff33", animation: "win-anim 1.2s infinite alternate" }} />
-          <h2 style={{ color: "#1e90ff", fontWeight: 900, fontSize: 32, margin: 0, marginBottom: 10, letterSpacing: 2 }}>KAZANDINIZ!</h2>
+          <img src="/fireandbeaver/coolbeaver.png" alt="You Won" style={{ width: 120, height: 120, marginBottom: 18, borderRadius: "50%", boxShadow: "0 4px 24px #1e90ff33", animation: "win-anim 1.2s infinite alternate" }} />
+          <h2 style={{ color: "#1e90ff", fontWeight: 900, fontSize: 32, margin: 0, marginBottom: 10, letterSpacing: 2 }}>YOU WON!</h2>
           <div style={{ color: "#1e90ff", fontSize: 20, marginBottom: 18, textAlign: "center", maxWidth: 260 }}>
-            Tebrikler, 1000 puana ulaştınız!<br />Skorunuz: <b>{score}</b>
+            Congratulations, you reached 1000 points!<br />Score: <b>{score}</b>
           </div>
           <div style={{ display: "flex", gap: 16 }}>
             <button onClick={() => {
@@ -344,10 +381,11 @@ export default function GameFirePage() {
               setFires([]);
               setWin(false);
               setPlaying(false);
-              setSpawnInterval(INITIAL_SPAWN);
-              setFireLifespan(INITIAL_LIFESPAN);
-            }} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#1e90ff", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #1e90ff33", marginBottom: 10 }}>Tekrar Oyna</button>
-            <button onClick={() => router.push("/")} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#b80000", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #b8000033", marginBottom: 10 }}>Geri Dön</button>
+              setGameOver(false);
+              setSpawnInterval(600);
+              setFireLifespan(1200);
+            }} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#1e90ff", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #1e90ff33", marginBottom: 10 }}>Restart</button>
+            <button onClick={() => router.push("/")} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#b80000", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #b8000033", marginBottom: 10 }}>Go Back</button>
           </div>
         </div>
       )}
@@ -383,8 +421,8 @@ export default function GameFirePage() {
               setPlaying(true);
               setGameOver(false);
               setWin(false);
-              setSpawnInterval(INITIAL_SPAWN);
-              setFireLifespan(INITIAL_LIFESPAN);
+              setSpawnInterval(600);
+              setFireLifespan(1200);
             }} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#2196f3", color: "#fff", fontWeight: 700, border: "none", boxShadow: "0 2px 8px #2196f333", marginBottom: 10, cursor: "pointer" }}>Start</button>
             <button onClick={() => router.push("/")} style={{ fontSize: 22, padding: "12px 38px", borderRadius: 12, background: "#fff", color: "#b80000", fontWeight: 700, border: "2px solid #b80000", boxShadow: "0 2px 8px #b8000033", marginBottom: 10, cursor: "pointer" }}>Go Back</button>
           </div>
