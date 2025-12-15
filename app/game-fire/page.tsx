@@ -1,3 +1,4 @@
+const MAX_UNEXTINGUISHED = 10; // Oyun bitirme eşiği (ateş sayısı)
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
@@ -11,8 +12,6 @@ type Fire = {
   timeoutId?: number
   exploding?: boolean // patlama animasyonu için
 }
-
-const MAX_UNEXTINGUISHED = 10; // Oyun bitirme eşiği (ateş sayısı)
 const GAME_OVER_SCORE = -200; // Skor eşiği
 const WIN_SCORE = 1000;
 export default function GameFirePage() {
@@ -447,8 +446,6 @@ export default function GameFirePage() {
   100% { opacity: 0.8; transform: scale(1) rotate(-2deg); }
 }
 `}</style>
-      </div>
-
     </div>
   )
 }
