@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from "react";
 // Dikey telefon formatında, sağa-sola hareket eden ve ağlayan kunduz, yaşlar ve kova
 export default function CryingBeaverGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const isPausedRef = useRef(false); // REF ile pause kontrolü - state yerine
   const [score, setScore] = React.useState(0);
   const [showHomeModal, setShowHomeModal] = React.useState(false);
   const [showStartModal, setShowStartModal] = React.useState(true);
@@ -150,6 +151,12 @@ export default function CryingBeaverGame() {
 
     // Main game loop
     function step() {
+      // PAUSE KONTROLÜ - Eğer oyun durdurulmuşsa hiçbir şey güncelleme
+      if (isPausedRef.current) {
+        requestAnimationFrame(step);
+        return;
+      }
+      
       // Beaver movement
       beaver.x += beaver.vx;
       beaver.dirTimer++;
@@ -426,7 +433,7 @@ export default function CryingBeaverGame() {
       {/* Home icon top-right */}
       <div style={{ position: "absolute", top: 16, right: 16, zIndex: 30 }}>
         <button
-          onClick={() => setShowHomeModal(true)}
+          onClick={() => { isPausedRef.current = true; setShowHomeModal(true); }}
           style={{ background: "#fff", color: "#1e293b", borderRadius: 9999, width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px #0002", border: "none", cursor: "pointer" }}
           aria-label="Home"
         >
@@ -442,17 +449,23 @@ export default function CryingBeaverGame() {
             <div style={{ fontSize: 28, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>Game Paused</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
               <button
-                style={{ width: "100%", padding: "12px 0", background: "#06b6d4", color: "#fff", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
-                onClick={() => { window.location.href = "/"; }}
-              >Return to Menu</button>
-              <button
                 style={{ width: "100%", padding: "12px 0", background: "#f59e42", color: "#fff", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
-                onClick={() => { setShowHomeModal(false); }}
+                onClick={() => { isPausedRef.current = false; setShowHomeModal(false); }}
               >Resume Game</button>
               <button
                 style={{ width: "100%", padding: "12px 0", background: "#e5e7eb", color: "#1e293b", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
-                onClick={() => { setScore(0); setShowHomeModal(false); setGameOver(false); }}
+                onClick={() => { 
+                  setScore(0); 
+                  isPausedRef.current = false; 
+                  setShowHomeModal(false); 
+                  setGameOver(false);
+                  window.location.reload(); // Oyunu tamamen yeniden başlat
+                }}
               >Restart Game</button>
+              <button
+                style={{ width: "100%", padding: "12px 0", background: "#06b6d4", color: "#fff", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
+                onClick={() => { window.location.href = "/"; }}
+              >Return to Menu</button>
             </div>
           </div>
         </div>

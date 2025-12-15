@@ -637,6 +637,18 @@ export default function LoveGame() {
   }
 
   function handleStart() {
+    // Audio context hatası için - kullanıcı etkileşimi sonrası audio izni al
+    try {
+      if (typeof window !== 'undefined' && window.AudioContext) {
+        const ctx = new window.AudioContext();
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+      }
+    } catch (e) {
+      // Ses yoksa devam et
+    }
+    
     // Oyunu temiz başlat
     setScore(0);
     setCombo(0);
