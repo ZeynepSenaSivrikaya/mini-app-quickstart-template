@@ -21,9 +21,10 @@ export default function Home() {
 		const v = videoRef.current;
 		if (!v) return;
 		function handleLoaded() {
-			v.currentTime = 1;
-			v.muted = false;
-			v.play().catch(() => {});
+			if (!videoRef.current) return;
+			videoRef.current.currentTime = 1;
+			videoRef.current.muted = false;
+			videoRef.current.play().catch(() => {});
 		}
 		v.addEventListener("loadedmetadata", handleLoaded);
 		function onPause() {
