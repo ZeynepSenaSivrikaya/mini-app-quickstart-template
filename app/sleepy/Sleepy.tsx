@@ -7,6 +7,7 @@ export default function Sleepy() {
   const [displayScore, setDisplayScore] = React.useState(0);
   const [gameOver, setGameOver] = React.useState(false);
   const [running, setRunning] = React.useState(true);
+  const [showMenu, setShowMenu] = React.useState(false);
 
   React.useEffect(() => {
     const canvas = canvasRef.current!;
@@ -194,10 +195,36 @@ export default function Sleepy() {
   }, [running, gameOver]);
 
   return (
-    <div className="p-4 flex flex-col items-center gap-4 bg-slate-900 min-h-screen">
-      <h1 className="text-3xl font-bold text-white">☕ Kahve Koşusu ☕</h1>
+    <div className="p-4 flex flex-col items-center gap-4 bg-slate-900 min-h-screen relative">
+      {/* Top-right in-game menu */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => setShowMenu((v) => !v)}
+          className="bg-slate-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-slate-600 focus:outline-none"
+          aria-label="Menu"
+        >
+          <span className="text-2xl">☰</span>
+        </button>
+        {showMenu && (
+          <div className="mt-2 bg-white rounded-lg shadow-xl py-2 px-4 min-w-[140px] flex flex-col gap-2">
+            <button
+              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-slate-800"
+              onClick={() => { setRunning(false); setShowMenu(false); }}
+            >Pause</button>
+            <button
+              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-slate-800"
+              onClick={() => { setRunning(true); setShowMenu(false); }}
+            >Resume</button>
+            <button
+              className="text-left px-2 py-1 rounded hover:bg-slate-100 text-red-600"
+              onClick={() => { window.location.href = "/"; }}
+            >Exit Game</button>
+          </div>
+        )}
+      </div>
+      <h1 className="text-3xl font-bold text-white">☕ Coffee Run ☕</h1>
       <p className="text-slate-300 text-center max-w-md">
-        Final haftası! Uyumadan kahve topla! 🛌'a değme yoksa uyuyakalırsın!
+        Finals week! Collect coffee and don't fall asleep! Avoid the beds or you'll doze off!
       </p>
       <div className="relative bg-slate-800 p-2 rounded-lg shadow-2xl">
         <canvas ref={canvasRef} className="rounded" style={{ imageRendering: 'auto' }} />
@@ -205,8 +232,8 @@ export default function Sleepy() {
           <div className="absolute inset-0 flex items-center justify-center flex-col bg-black/80 rounded">
             <div className="text-6xl mb-4">😴</div>
             <div className="text-white text-3xl font-bold mb-2">GAME OVER</div>
-            <div className="text-yellow-300 text-xl mb-4">Uyuyakaldın! 💤</div>
-            <div className="text-white text-2xl mb-6">Toplam Kahve: ☕ {displayScore}</div>
+            <div className="text-yellow-300 text-xl mb-4">You fell asleep! 💤</div>
+            <div className="text-white text-2xl mb-6">Total Coffee: ☕ {displayScore}</div>
             <button 
               onClick={() => { 
                 scoreRef.current = 0;
@@ -216,15 +243,15 @@ export default function Sleepy() {
               }} 
               className="px-6 py-3 bg-amber-500 hover:bg-amber-600 rounded-lg text-white font-bold text-lg transition"
             >
-              ☕ Tekrar Oyna
+              ☕ Play Again
             </button>
           </div>
         )}
       </div>
       <div className="text-slate-300 text-sm text-center">
-        <div>⬅️ A / Sol Ok - Sola Git</div>
-        <div>➡️ D / Sağ Ok - Sağa Git</div>
-        <div className="mt-2 text-amber-400">✨ Oyun zamanla hızlanır!</div>
+        <div>⬅️ A / Left Arrow - Move Left</div>
+        <div>➡️ D / Right Arrow - Move Right</div>
+        <div className="mt-2 text-amber-400">✨ The game speeds up over time!</div>
       </div>
     </div>
   );

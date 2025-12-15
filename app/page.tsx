@@ -7,7 +7,7 @@ const MOODS = [
 	{ id: "sad", label: "Üzgün", img: "/bears/sad.png", route: "/game-tears" },
 	{ id: "happy", label: "Mutlu", img: "/bears/happy.png", route: "/game-jump" },
 	{ id: "scared", label: "Korkmuş", img: "/bears/scared.png", route: "/game" },
-	{ id: "sleepy", label: "Uykulu", img: "/bears/sleepy.png", route: "/" },
+	{ id: "sleepy", label: "Uykulu", img: "/bears/sleepy.png", route: "/game-sleepy" },
 	{ id: "love", label: "Aşık", img: "/bears/love.png", route: "/" },
 	{ id: "fire", label: "Ateşli", img: "/bears/fire.png", route: "/game-fire" },
 ];
