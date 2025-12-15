@@ -30,8 +30,8 @@ function JumpGame({
       // Touch hareketleri için değişkenler
       let touchStartX: number | null = null;
 
-      let width = (canvas.width = Math.min(390, window.innerWidth - 40));
-      let height = (canvas.height = Math.min(700, window.innerHeight - 120));
+      let width = (canvas.width = 360);
+      let height = (canvas.height = 640);
 
       // Karakter
       const player = {
@@ -210,13 +210,13 @@ function JumpGame({
       ctx.textAlign = "left";
       ctx.fillText(`Score: ${jumpedPlatformCount}`, 10, 24);
       ctx.textAlign = "left";
-      // Lives (sağ üst)
-      ctx.font = "20px sans-serif";
+      // Lives (top center)
+      ctx.font = "24px sans-serif";
       ctx.fillStyle = "#e53935";
       let heart = "\u2665"; // ♥
       let livesText = Array(lives).fill(heart).join(" ");
-      ctx.textAlign = "right";
-      ctx.fillText(livesText, width - 10, 28);
+      ctx.textAlign = "center";
+      ctx.fillText(livesText, width / 2, 36);
       ctx.textAlign = "left";
       if (gameOver) {
         ctx.fillStyle = "#fff";
