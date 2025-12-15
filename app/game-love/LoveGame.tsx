@@ -37,9 +37,11 @@ function randomTarget(id: number, level: number): Target {
   // Hedef türü ve hızını seviyeye göre belirle
   const tRand = Math.random();
   let type: TargetType = "lover";
-  if (tRand < 0.20) type = "broken";
-  else if (tRand > 0.95) type = "timer"; // biraz daha sık
+  // Kalp olasılığı artırıldı - %50 lover, %35 broken, %10 bonus, %5 timer
+  if (tRand < 0.35) type = "broken";
+  else if (tRand > 0.95) type = "timer";
   else if (tRand > 0.85) type = "bonus";
+  // Geri kalan %50 lover kalp
   const y = 80 + Math.random() * 180;
   // Hedefleri yavaşlatmak için hız katsayıları azaltıldı
   const vx = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random() * (1.2 + level * 0.3));
@@ -180,28 +182,40 @@ export default function LoveGame() {
     let newEffect: any = null;
     let newLastHitType: any = null;
     
-    // Check collisions
-    const ARROW_HITBOX = 14; // ok ucu yarıçapı ekle
+    // Check collisions - BASİT VE KESİN ÇÖZÜM
+    const COLLISION_RADIUS = 60; // Çok geniş çarpışma alanı
+    
     const updatedArrows = arrows.map(a => {
+      if (!a.active) return a;
+      
+      // Basit mesafe kontrolü - ok ile hedef arası mesafe
       for (const t of targets) {
-        if (!t.hit && Math.hypot(a.x-t.x, a.y-t.y) < t.radius + ARROW_HITBOX) {
-          t.hit = true;
-          newLastHitType = t.type;
-          newEffect = {x:t.x, y:t.y, type:t.type};
-          if (t.type === "lover") {
-            scoreChange += 10;
-            comboChange += 1;
-          } else if (t.type === "bonus") {
-            scoreChange += 50;
-            newEffect = {x:t.x, y:t.y, type:"bonus"};
-          } else if (t.type === "timer") {
-            timerChange += 5;
-          } else if (t.type === "broken") {
-            comboChange = -combo; // Reset combo
-            energyChange -= 30;
-            timerChange -= 5; // Penalty: lose time when hitting broken hearts
+        if (!t.hit) {
+          const distance = Math.hypot(a.x - t.x, a.y - t.y);
+          
+          // Eğer ok hedefe yeterince yakınsa ÇARPIŞMA VAR
+          if (distance < t.radius + COLLISION_RADIUS) {
+            t.hit = true;
+            newLastHitType = t.type;
+            newEffect = {x:t.x, y:t.y, type:t.type};
+            
+            if (t.type === "lover") {
+              scoreChange += 10;
+              comboChange += 1;
+            } else if (t.type === "bonus") {
+              scoreChange += 50;
+              newEffect = {x:t.x, y:t.y, type:"bonus"};
+            } else if (t.type === "timer") {
+              timerChange += 5;
+            } else if (t.type === "broken") {
+              comboChange = -combo;
+              energyChange -= 30;
+              timerChange -= 5;
+            }
+            
+            a.active = false;
+            break;
           }
-          a.active = false;
         }
       }
       return a;
@@ -242,8 +256,14 @@ export default function LoveGame() {
     // Update arrows
     setArrows(updatedArrows);
     
-    // Update targets - regenerate hit targets
-    setTargets(ts => ts.map(t => t.hit ? randomTarget(Math.random()*10000, level) : t));
+    // Update targets - vurulan hedefleri kaldır ve yenilerini oluştur
+    setTargets(ts => ts.map(t => {
+      if (t.hit) {
+        // Vurulan cisim kaldırılıp yerine yeni hedef oluşturuluyor
+        return randomTarget(Math.random()*10000, level);
+      }
+      return t;
+    }));
   }, [arrows.length, score]); // Only depend on arrow count and score to avoid infinite loop
 
   // --- Canvas Çizimi ---
@@ -341,23 +361,7 @@ export default function LoveGame() {
       }
       ctx.restore();
     }
-    // Oklar
-    for(const a of arrows){
-      if(!a.active) continue;
-      ctx.save();
-      const img = arrowImgRef.current;
-      if (img && img.complete) {
-        const scale = 0.3;
-        const w = img.width * scale;
-        const h = img.height * scale;
-        ctx.translate(a.x, a.y);
-        // Okun açısı
-        const angle = Math.atan2(a.vy, a.vx);
-        ctx.rotate(angle + Math.PI/2);
-        ctx.drawImage(img, -w/2, -h/2, w, h);
-      }
-      ctx.restore();
-    }
+    
     // Beaver görseli (%10 boyutunda, orantılı)
     const img = beaverImgRef.current;
     if (img && img.complete) {
@@ -365,6 +369,24 @@ export default function LoveGame() {
       const drawW = img.width * scale;
       const drawH = img.height * scale;
       ctx.drawImage(img, beaverX - drawW / 2, BEAVER_Y - drawH / 2, drawW, drawH);
+    }
+    
+    // Oklar - HEDEFLERİN ÜZERİNDE ÇİZİLMELİ
+    for(const a of arrows){
+      if(!a.active) continue;
+      ctx.save();
+      const arrowImg = arrowImgRef.current;
+      if (arrowImg && arrowImg.complete) {
+        const scale = 0.3;
+        const w = arrowImg.width * scale;
+        const h = arrowImg.height * scale;
+        ctx.translate(a.x, a.y);
+        // Okun açısı
+        const angle = Math.atan2(a.vy, a.vx);
+        ctx.rotate(angle + Math.PI/2);
+        ctx.drawImage(arrowImg, -w/2, -h/2, w, h);
+      }
+      ctx.restore();
     }
     
     // Yay çekme görseli
