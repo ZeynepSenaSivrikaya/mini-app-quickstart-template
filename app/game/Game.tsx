@@ -109,7 +109,7 @@ export default function Game() {
 
     let req = 0;
     const startPos = { x: 2 * TILE + TILE / 2, y: 2 * TILE + TILE / 2 };
-    const player: Vec & { speed: number; invulnerableUntil?: number } = { x: startPos.x, y: startPos.y, speed: 2 };
+    const player: Vec & { speed: number; invulnerableUntil?: number } = { x: startPos.x, y: startPos.y, speed: 1.5 };
     const ghostSpawns = [
       { x: 11 * TILE + TILE / 2, y: 3 * TILE + TILE / 2 },
       { x: 12 * TILE + TILE / 2, y: 16 * TILE + TILE / 2 },
@@ -333,8 +333,8 @@ export default function Game() {
             }
           }
           // attempt to move but block on walls per axis
-          const nextX = player.x + (dx / mag) * player.speed * speedMult * shiftMultiplier * fleeBoost * dt * 8;
-          const nextY = player.y + (dy / mag) * player.speed * speedMult * shiftMultiplier * fleeBoost * dt * 8;
+          const nextX = player.x + (dx / mag) * player.speed * speedMult * shiftMultiplier * fleeBoost * dt * 6;
+          const nextY = player.y + (dy / mag) * player.speed * speedMult * shiftMultiplier * fleeBoost * dt * 6;
           // check X move alone
           if (tileAtXY(nextX, player.y) === 0) player.x = nextX;
           // check Y move alone
@@ -869,13 +869,13 @@ export default function Game() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-900 overflow-hidden" style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '360px', marginBottom: 8 }}>
         <h2 className="text-2xl font-bold text-white">Scared Beaver Game</h2>
         <button onClick={handleHome} style={{ padding: '8px 20px', background: '#64748b', color: '#fff', borderRadius: 8, fontWeight: 600, border: 'none', fontSize: 14, cursor: 'pointer' }}>Home</button>
       </div>
-      <div className="relative bg-slate-800 rounded-3xl shadow-2xl overflow-hidden" style={{ width: '360px', height: '640px' }}>
-        <canvas ref={canvasRef} className="block" />
+      <div className="relative bg-slate-800 rounded-3xl shadow-2xl overflow-hidden" style={{ width: '360px', height: '640px', touchAction: 'none' }}>
+        <canvas ref={canvasRef} className="block" style={{ touchAction: 'none' }} />
         
         {/* Start Screen */}
         {!started && !gameOver && (
