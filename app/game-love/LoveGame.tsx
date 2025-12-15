@@ -41,9 +41,10 @@ function randomTarget(id: number, level: number): Target {
   else if (tRand > 0.95) type = "timer"; // biraz daha sık
   else if (tRand > 0.85) type = "bonus";
   const y = 80 + Math.random() * 180;
-  const vx = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * (3 + level * 0.8));
-  // lover ve broken tipleri için dikeyde de rastgele hareket
-  const vy = (type === "lover" || type === "broken") ? (Math.random() < 0.5 ? -1 : 1) * (1 + Math.random() * (1.5 + level * 0.3)) : 0;
+  // Hedefleri yavaşlatmak için hız katsayıları azaltıldı
+  const vx = (Math.random() < 0.5 ? -1 : 1) * (1.5 + Math.random() * (1.2 + level * 0.3));
+  // lover ve broken tipleri için dikeyde de rastgele hareket (daha yavaş)
+  const vy = (type === "lover" || type === "broken") ? (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * (0.7 + level * 0.1)) : 0;
   return {
     id,
     x: Math.random() * (CANVAS_W - 2 * TARGET_RADIUS) + TARGET_RADIUS,
@@ -95,9 +96,6 @@ export default function LoveGame() {
   const [gameOver, setGameOver] = useState(false);
   const [level, setLevel] = useState(1);
   const [powerUp, setPowerUp] = useState<string | null>(null);
-  const [wind, setWind] = useState(0);
-  const [windActive, setWindActive] = useState(true);
-  const [windTimer, setWindTimer] = useState(8);
   const [beaverX, setBeaverX] = useState(CANVAS_W / 2);
   const [arrowAnim, setArrowAnim] = useState(false);
   const [effect, setEffect] = useState<{x:number,y:number,type:string}|null>(null);
@@ -107,19 +105,17 @@ export default function LoveGame() {
   const [dragCurrent, setDragCurrent] = useState<{x:number, y:number}|null>(null);
   const [paused, setPaused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showHomeModal, setShowHomeModal] = useState(false);
 
   // --- Oyun Başlat ---
   useEffect(() => {
-    if (gameOver || !gameStarted) return;
+    if (gameOver || !gameStarted || paused) return;
     setTargets(Array.from({length: 6}, (_,i) => randomTarget(i, level)));
     setArrows([]);
     setCombo(0);
     setEnergy(100);
     setTimer(GAME_TIME);
     setPowerUp(null);
-    setWind((Math.random()-0.5)*4);
-    setWindActive(true);
-    setWindTimer(8);
     setBeaverX(CANVAS_W/2);
     setArrowAnim(false);
     setEffect(null);
@@ -129,7 +125,7 @@ export default function LoveGame() {
 
   // --- Zamanlayıcı ---
   useEffect(() => {
-    if (gameOver || !gameStarted) return;
+    if (gameOver || !gameStarted || paused) return;
     let t: NodeJS.Timeout | null = null;
     if (timer > 0) {
       t = setInterval(() => {
@@ -146,30 +142,14 @@ export default function LoveGame() {
     // Sadece gameOver ve level değişince başlasın
   }, [gameOver, level, gameStarted]);
 
-  // --- Rüzgar Zamanlayıcı ---
-  useEffect(() => {
-    if (gameOver || !windActive || !gameStarted) return;
-    let t: NodeJS.Timeout | null = null;
-    if (windTimer > 0) {
-      t = setInterval(() => {
-        setWindTimer(wt => {
-          if (wt <= 1) {
-            setWind((Math.random()-0.5)*4);
-            return 8;
-          }
-          return wt - 1;
-        });
-      }, 1000);
-    }
-    return () => { if (t) clearInterval(t); };
-  }, [gameOver, windActive, gameStarted]);
+
 
   // --- Hedefleri ve Okları Güncelle ---
   useEffect(() => {
-    if (gameOver || !gameStarted) return;
+    if (gameOver || !gameStarted || paused) return;
     const anim = setInterval(() => {
       setTargets(ts => ts.map(t => {
-        let nx = t.x + t.vx + (windActive ? wind : 0);
+        let nx = t.x + t.vx;
         let ny = t.y + t.vy;
         // lover ve broken tipleri ekranda rastgele hareket etsin (hem yatay hem dikey)
         if (nx < t.radius || nx > CANVAS_W-t.radius) t.vx *= -1;
@@ -181,15 +161,15 @@ export default function LoveGame() {
           return {...t, x: Math.max(t.radius, Math.min(CANVAS_W-t.radius, nx))};
         }
       }));
-      setArrows(arrs => arrs.map(a => ({...a, x: a.x + a.vx + (windActive ? wind : 0), y: a.y + a.vy}))
+      setArrows(arrs => arrs.map(a => ({...a, x: a.x + a.vx, y: a.y + a.vy}))
         .filter(a => a.y > -40 && a.active));
     }, 16);
     return () => clearInterval(anim);
-  }, [gameOver, wind, gameStarted, windActive]);
+  }, [gameOver, gameStarted]);
 
   // --- Çarpışma ve Skor ---
   useEffect(() => {
-    if (gameOver) return;
+    if (gameOver || paused) return;
     
     let scoreChange = 0;
     let comboChange = 0;
@@ -471,62 +451,13 @@ export default function LoveGame() {
       }
       ctx.restore();
     }
-    // Rüzgar göstergesi
-    ctx.save();
-    ctx.font = "16px sans-serif";
-    ctx.fillStyle = windActive ? "#6ec6ff" : "#999";
-    ctx.fillText(windActive ? `🌬️ ${wind>0?"→":"←"} ${Math.abs(wind).toFixed(1)} (${windTimer}s)` : `🌬️ Kapalı`, CANVAS_W/2, CANVAS_H-20);
-    ctx.textAlign = "center";
-    ctx.restore();
 
-    // Sağ üst: pembe Home simgesi (ikon) ve tıklanınca açılan menü
-    const iconSize = 30;
-    // Saate soluna alınmış konum (daha fazla boşluk)
-    const iconX = CANVAS_W - iconSize - 100;
-    const iconY = 10;
-    // Çatı + ev çizimi
-    ctx.save();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "#e75480"; // pembe
-    // Çatı (dolu üçgen)
-    ctx.beginPath();
-    ctx.moveTo(iconX + iconSize*0.1, iconY + iconSize*0.6);
-    ctx.lineTo(iconX + iconSize*0.5, iconY + iconSize*0.05);
-    ctx.lineTo(iconX + iconSize*0.9, iconY + iconSize*0.6);
-    ctx.closePath();
-    ctx.fillStyle = "#e75480";
-    ctx.fill();
-    ctx.stroke();
-    // Gövde (yuvarlatılmış köşe)
-    const bodyX = iconX + iconSize*0.2;
-    const bodyY = iconY + iconSize*0.58;
-    const bodyW = iconSize*0.6;
-    const bodyH = iconSize*0.37;
-    ctx.beginPath();
-    (ctx as any).roundRect(bodyX, bodyY, bodyW, bodyH, 5);
-    ctx.stroke();
-    // Kapı (yuvarlak üst)
-    ctx.beginPath();
-    ctx.moveTo(iconX + iconSize*0.52, iconY + iconSize*0.68);
-    ctx.arc(iconX + iconSize*0.52, iconY + iconSize*0.74, iconSize*0.08, Math.PI*1.0, Math.PI*0, false);
-    ctx.lineTo(iconX + iconSize*0.6, iconY + iconSize*0.95);
-    ctx.lineTo(iconX + iconSize*0.44, iconY + iconSize*0.95);
-    ctx.closePath();
-    ctx.stroke();
-    // Pencere (kalp)
-    const hx = iconX + iconSize*0.34;
-    const hy = iconY + iconSize*0.74;
-    const hs = iconSize*0.06;
-    ctx.beginPath();
-    ctx.moveTo(hx, hy);
-    ctx.bezierCurveTo(hx - hs, hy - hs, hx - hs*1.6, hy + hs*0.6, hx, hy + hs*1.4);
-    ctx.bezierCurveTo(hx + hs*1.6, hy + hs*0.6, hx + hs, hy - hs, hx, hy);
-    ctx.strokeStyle = "#e75480";
-    ctx.stroke();
-    ctx.restore();
+
 
     // Menü açıksa altına 3 seçeneklik panel
     if (menuOpen) {
+      const iconSize = 30;
+      const iconY = 10;
       const menuW = 140;
       const menuH = 90;
       const menuX = CANVAS_W - menuW - 14;
@@ -567,7 +498,7 @@ export default function LoveGame() {
       ctx.fillText(`Score: ${score}`, CANVAS_W/2, CANVAS_H/2+32);
       ctx.restore();
     }
-  }, [arrows, targets, score, combo, energy, timer, gameOver, effect, wind, beaverX, charging, dragStart, dragCurrent]);
+  }, [arrows, targets, score, combo, energy, timer, gameOver, effect, beaverX, charging, dragStart, dragCurrent]);
 
   // --- Kontroller: Basılı tut/çek ---
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -641,7 +572,7 @@ export default function LoveGame() {
       {
         x: beaverX,
         y: BEAVER_Y-32,
-        vx: Math.cos(angle) * speed + (windActive ? wind*0.5 : 0),
+        vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         power,
         active: true,
@@ -680,9 +611,6 @@ export default function LoveGame() {
     setGameOver(false);
     setGameStarted(false);
     setPowerUp(null);
-    setWind((Math.random()-0.5)*4);
-    setWindActive(true);
-    setWindTimer(8);
     setEffect(null);
   }
 
@@ -695,9 +623,6 @@ export default function LoveGame() {
     setLevel(1);
     setGameOver(false);
     setPowerUp(null);
-    setWind((Math.random()-0.5)*4);
-    setWindActive(true);
-    setWindTimer(8);
     setEffect(null);
     setLastHitType(null);
     setDragStart(null);
@@ -708,18 +633,10 @@ export default function LoveGame() {
   }
 
   function handleHome() {
-    window.location.href = "/";
+    setPaused(true);
+    setShowHomeModal(true);
   }
 
-  function toggleWind() {
-    setWindActive(!windActive);
-    if (windActive) {
-      setWind(0);
-    } else {
-      setWind((Math.random()-0.5)*4);
-      setWindTimer(8);
-    }
-  }
 
   useEffect(() => {
     if (!beaverImgRef.current) {
@@ -746,11 +663,45 @@ export default function LoveGame() {
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#f7eaff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+    <div style={{ width: '360px', height: '640px', background: '#f7eaff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', margin: '0 auto', borderRadius: 18, boxShadow: '0 2px 24px #e7548033', overflow: 'hidden' }}>
+      {/* Home icon top-right */}
+      <div style={{ position: "absolute", top: 16, right: 16, zIndex: 30 }}>
+        <button
+          onClick={handleHome}
+          style={{ background: "#fff", color: "#1e293b", borderRadius: 9999, width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px #0002", border: "none", cursor: "pointer" }}
+          aria-label="Home"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 28, height: 28 }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-7.5L21 12M4.5 10.5V19a1.5 1.5 0 001.5 1.5h3.75m6 0H18a1.5 1.5 0 001.5-1.5v-8.5" />
+          </svg>
+        </button>
+      </div>
+      {/* Home modal */}
+      {showHomeModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)" }}>
+          <div style={{ background: "#fff", borderRadius: 24, boxShadow: "0 8px 32px #0004", padding: 32, display: "flex", flexDirection: "column", alignItems: "center", gap: 24, minWidth: 260, maxWidth: "90vw" }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>Game Paused</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+              <button
+                style={{ width: "100%", padding: "12px 0", background: "#06b6d4", color: "#fff", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
+                onClick={() => { setPaused(false); setShowHomeModal(false); window.location.href = "/"; }}
+              >Return to Menu</button>
+              <button
+                style={{ width: "100%", padding: "12px 0", background: "#f59e42", color: "#fff", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
+                onClick={() => { setPaused(false); setShowHomeModal(false); }}
+              >Resume</button>
+              <button
+                style={{ width: "100%", padding: "12px 0", background: "#e5e7eb", color: "#1e293b", borderRadius: 12, fontWeight: 600, fontSize: 18, border: "none", marginBottom: 8, cursor: "pointer" }}
+                onClick={() => { setScore(0); setCombo(0); setEnergy(100); setTimer(GAME_TIME); setLevel(1); setGameOver(false); setGameStarted(false); setPowerUp(null); setEffect(null); setShowHomeModal(false); setPaused(false); }}
+              >Restart</button>
+            </div>
+          </div>
+        </div>
+      )}
       {!gameStarted && !gameOver && (
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 2 }}>
           <div style={{ background: "#fff", padding: 20, borderRadius: 16, boxShadow: "0 4px 24px #e75480a0", maxWidth: 360, width: "100%", textAlign: "center" }}>
-            <div style={{ color: "#e75480", fontWeight: 800, fontSize: 22, marginBottom: 10 }}>Cupid Beaver</div>
+            {/* Cupid Beaver başlığı kaldırıldı */}
             <div style={{ color: "#555", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
               Pull and hold anywhere on the screen, aim backwards like a bow, then release to shoot.
               The longer you pull, the stronger the shot.
@@ -771,41 +722,15 @@ export default function LoveGame() {
       )}
       <canvas
         ref={canvasRef}
-        width={CANVAS_W}
-        height={CANVAS_H}
-        style={{ borderRadius: 18, boxShadow: "0 4px 24px #e75480a0", background: "#fff", touchAction: "none", maxWidth: 400, maxHeight: 700, margin: "auto" }}
+        width={360}
+        height={640}
+        style={{ borderRadius: 18, boxShadow: '0 4px 24px #e75480a0', background: '#fff', touchAction: 'none', width: 360, height: 640, margin: 'auto', filter: showHomeModal ? 'blur(2px)' : 'none', pointerEvents: showHomeModal ? 'none' : 'auto' }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerMove={handlePointerMove}
       />
-      {(gameStarted || gameOver) && (
-        <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap", justifyContent: "center", zIndex: 1 }}>
-          {gameOver && (
-            <>
-              <button onClick={handleRestart} style={{ fontSize: 18, background: "#e75480", color: "#fff", border: 0, borderRadius: 12, padding: "10px 28px", fontWeight: 700 }}>
-                Restart
-              </button>
-              <button onClick={handleHome} aria-label="Home" title="Home" style={{ fontSize: 20, background: "#999", color: "#fff", border: 0, borderRadius: 12, padding: "10px 18px", fontWeight: 700 }}>
-                🏠
-              </button>
-            </>
-          )}
-          {gameStarted && !gameOver && (
-            <>
-              <button onClick={toggleWind} style={{ fontSize: 16, background: windActive ? "#6ec6ff" : "#999", color: "#fff", border: 0, borderRadius: 12, padding: "10px 24px", fontWeight: 700 }}>
-                {windActive ? "🌬️ Wind Off" : "🌬️ Wind On"}
-              </button>
-              <button onClick={() => { /* resume placeholder */ }} style={{ fontSize: 16, background: "#e75480", color: "#fff", border: 0, borderRadius: 12, padding: "10px 24px", fontWeight: 700 }}>
-                Resume
-              </button>
-              <button onClick={handleHome} aria-label="Home" title="Home" style={{ fontSize: 20, background: "#999", color: "#fff", border: 0, borderRadius: 12, padding: "8px 16px", fontWeight: 700 }}>
-                🏠
-              </button>
-            </>
-          )}
-        </div>
-      )}
-      <div style={{ marginTop: 16, color: "#e75480", fontWeight: 600, fontSize: 16 }}>🏹 Cupid Beaver</div>
+      {/* Bottom Restart and Home buttons removed as requested */}
+      {/* Alt kısımdaki Cupid Beaver yazısı kaldırıldı */}
     </div>
   );
 }
