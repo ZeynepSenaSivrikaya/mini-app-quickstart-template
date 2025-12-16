@@ -156,30 +156,42 @@ Catch falling tears with your bucket! Every tear that hits the ground creates a 
 
 **Controls:** Tap left or right side of the screen to move the bucket.
 
+![Tears Game](public/screenshots/tears.png)
+
 ### Game 2: Jump (Happy) - `/game-jump`
 Jump on platforms and reach as high as you can! Kunduz has 3 lives. The game speeds up after reaching certain scores. If you fall and lose all lives, you burn and the game ends.
 
 **Controls:** Swipe left or right to move Kunduz in that direction.
+
+![Jump Game](public/screenshots/jump.png)
 
 ### Game 3: Scared - `/game`
 Pac-Man style maze game! Kunduz runs away from ghosts and has 3 lives. Collect all the dots on the screen to increase your score. When all dots are collected, new ones appear and the game speeds up. If you lose all 3 lives, you burn and the game is over.
 
 **Controls:** Use on-screen arrow buttons at the bottom to move up, down, left, or right.
 
+![Scared Game](public/screenshots/scared.png)
+
 ### Game 4: Sleepy - `/game-sleepy`
 Stay awake! Collect coffee cups to keep Kunduz energized while avoiding pillows that make him sleepy. Don't let the sleep meter fill up!
 
 **Controls:** Tap left or right side of the screen to move.
+
+![Sleepy Game](public/screenshots/sleepy.png)
 
 ### Game 5: Love - `/game-love`
 Cupid Kunduz! Shoot arrows to hit lover beavers and bonuses while avoiding broken hearts. This is a timed game - when time runs out, the game ends. Aim carefully!
 
 **Controls:** Drag and release to aim and shoot arrows in any direction.
 
+![Love Game](public/screenshots/love.png)
+
 ### Game 6: Fire - `/game-fire`
 Put out the fires! Each fire shows a number indicating how many times you need to tap it. If you don't extinguish a fire in time, it explodes. Your score starts at 0 - if it drops to -200, you lose. Reach 1000 points to win!
 
 **Controls:** Tap on fires to extinguish them.
+
+![Fire Game](public/screenshots/fire.png)
 
 ---
 
